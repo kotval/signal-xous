@@ -16,7 +16,17 @@ The basic idea is to save all msg directly to the PDDB, and for the UI to traver
 - [x] develop [xous chat library](https://github.com/betrusted-io/xous-core/pull/408) to provide a UI to interact with a Dialogue of Posts stored in the PDDB
 - [ ] resurvey Whisperfish, signal-cli & gurk for useful stuff (see useful below)
 - [ ] register a Precursor as a Signal device
-
+- [ ] Maintain a fork of [libsignal](https://github.com/signalapp/libsignal)
+  which renames the curve25519-dalek fork so that libsignal gets built with two
+  copies of the curve25519-dalek crate, until the [lizard](https://github.com/signalapp/libsignal/issues/540#issuecomment-1779701014) issue is delt with. This is necessary to build libsignal-zkgroup 
+  [ ] Consider helping upstream [lizard](https://github.com/signalapp/libsignal/issues/540#issuecomment-1779701014).
+  [x] Demonstate use of libsignal-protocol to encrypt and decrypt a message in a test crate on renode
+  [ ] Do the same on hardware, see if using the two different dalek crates produces a noticible lab on the non accelerated version.
+  [ ] Demonstate use of libsignal-signal-crypto
+  [ ] Demonstate use of libsignal-device-transfer
+  [ ] Demonstate use of libsignal-zkgroup
+  [ ] Demonstate use of libsignal-usernames
+  [ ] Read through libsignal-media and libsignal-pin. Likely we won't need them.
 
 ### Useful
 
@@ -58,16 +68,19 @@ libsignal-protocol v0.1.0 (/libsignal/rust/protocol)
 
 ```
 * [device transfer](https://github.com/signalapp/libsignal/blob/main/rust/device-transfer/src/lib.rs) can probably be re-implemented without too much fuss
-* [curve25519-dalek](https://crates.io/crates/curve25519-dalek) ... [getrandom](https://crates.io/crates/getrandom)
+* [curve25519-dalek](https://crates.io/crates/curve25519-dalek) is confirmed to work in renode.
 * [pqcrypto-kyber](https://github.com/signalapp/libsignal/blob/af7bb8567c812aa13625fc90076bf71a59d64ff5/rust/protocol/src/kem.rs#L426-L455) appears to be used only in tests
-* [rand]() boils down to `use rand::{Rng, thread_rng, rngs::OsRng, prelude::*, distributions::Uniform, prelude::{Rng, ThreadRng}, RngCore, seq::SliceRandom}`
+* [rand]() appears to work in renode
 
-Hopefully the `getrandom` and `rand` dependencies are covered by the xous libc [rand](https://github.com/betrusted-io/xous-core/blob/08aac2c2854dc3cfa7c277ddce85c0b88c72378b/services/ffi-test/sys/ffi/libc.c#L929-L975) implementation.
 
 #### 64 bit dependencies
+
+Origionally, we were worried about these issues:
 
 * [re-export curve25519-dalek features #453](https://github.com/signalapp/libsignal/issues/453)
 
 * [Default Dalek32 backend on unknown platform #509](https://github.com/dalek-cryptography/curve25519-dalek/pull/509)
+
+It seems [that](https://github.com/signalapp/libsignal/issues/453#issuecomment-1783367959) the new version 4 uses `cfg` flags so we don't have to ask them to change anything to make the necessary changes. The create builds now, but we should be careful that we are using the most performant backend with the `cfg` options.
 
 
